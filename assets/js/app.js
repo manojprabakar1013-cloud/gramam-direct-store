@@ -15,6 +15,7 @@ const orderKey='gramamDirectOrders';
 const userKey='gramamDirectUser';
 const whatsappNumber='918220272719';
 const whatsappDisplay='+91 82202 72719';
+const ordersApiUrl='https://script.google.com/macros/s/AKfycbyvS5ubSXImh711LFJewNoLLFPR2Lk5aFCQy4q-teDPUxHNQ4pYc32g2vLExsg5N3I-ow/exec';
 
 function whatsappUrl(message){return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`}
 function openWhatsApp(message){window.open(whatsappUrl(message),'_blank','noopener')}
@@ -60,7 +61,46 @@ function renderCart(){
   const summary=document.querySelector('.cart-summary');let wa=document.querySelector('#whatsapp-cart-btn');if(summary&&!wa){summary.insertAdjacentHTML('beforeend','<button id="whatsapp-cart-btn" class="btn" style="width:100%;margin-top:.75rem;background:#25D366;color:#fff">💬 Order cart on WhatsApp</button>');wa=document.querySelector('#whatsapp-cart-btn');wa?.addEventListener('click',()=>openWhatsApp(buildCartWhatsAppMessage()))}if(wa){wa.disabled=!rows.length;wa.style.opacity=rows.length?'1':'.55';wa.style.cursor=rows.length?'pointer':'not-allowed'}
 }
 function renderCheckout(){const sum=document.querySelector('#checkout-summary');if(!sum)return;const rows=cartRows(),t=cartTotals();sum.innerHTML=rows.map(r=>`<div class="summary-line"><span>${r.product.name} × ${r.qty}</span><strong>${money(r.product.price*r.qty)}</strong></div>`).join('')+`<div class="summary-line"><span>Shipping</span><strong>${t.shipping?money(t.shipping):'Free'}</strong></div><div class="summary-line total"><span>Total</span><span>${money(t.total)}</span></div>`}
-function placeOrder(e){e.preventDefault();const rows=cartRows();if(!rows.length){toast('Your cart is empty');return}const form=new FormData(e.target);const t=cartTotals();const order={id:'GD'+Date.now().toString().slice(-8),date:new Date().toLocaleDateString('en-IN'),status:'Confirmed',total:t.total,items:rows.map(r=>({name:r.product.name,qty:r.qty})) ,customer:form.get('name')};const orders=JSON.parse(localStorage.getItem(orderKey)||'[]');orders.unshift(order);localStorage.setItem(orderKey,JSON.stringify(orders));localStorage.removeItem(cartKey);location.href=`orders.html?placed=${order.id}`}
+async function placeOrder(e){
+  e.preventDefault();
+  const formEl=e.target;
+  const rows=cartRows();
+  if(!rows.length){toast('Your cart is empty');return}
+  const form=new FormData(formEl);
+  const t=cartTotals();
+  const orderId='GD'+Date.now().toString().slice(-8);
+  const submitBtn=formEl.querySelector('button[type="submit"],button:not([type])');
+  const originalText=submitBtn?.textContent||'Place order';
+  const payload={
+    orderId,
+    customerName:form.get('name')||'',
+    phone:form.get('phone')||'',
+    email:form.get('email')||'',
+    address:form.get('address')||'',
+    city:form.get('city')||'',
+    pin:form.get('pin')||'',
+    products:rows.map(r=>({name:r.product.name,qty:r.qty,unit:r.product.unit,price:r.product.price,lineTotal:r.product.price*r.qty})),
+    subtotal:t.subtotal,
+    shipping:t.shipping,
+    total:t.total,
+    paymentMethod:form.get('payment')||'Cash on Delivery',
+    orderStatus:'New'
+  };
+  if(submitBtn){submitBtn.disabled=true;submitBtn.textContent='Saving order...'}
+  try{
+    await fetch(ordersApiUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+    const order={id:orderId,date:new Date().toLocaleDateString('en-IN'),status:'Confirmed',total:t.total,items:rows.map(r=>({name:r.product.name,qty:r.qty})),customer:form.get('name')};
+    const orders=JSON.parse(localStorage.getItem(orderKey)||'[]');
+    orders.unshift(order);
+    localStorage.setItem(orderKey,JSON.stringify(orders));
+    localStorage.removeItem(cartKey);
+    location.href=`orders.html?placed=${orderId}`;
+  }catch(error){
+    console.error('Order save failed',error);
+    toast('Could not save order. Please try WhatsApp order.');
+    if(submitBtn){submitBtn.disabled=false;submitBtn.textContent=originalText}
+  }
+}
 function handleAuth(e,type){e.preventDefault();const f=new FormData(e.target);const user={name:f.get('name')||'Gramam Customer',email:f.get('email')};localStorage.setItem(userKey,JSON.stringify(user));toast(type==='register'?'Account created':'Welcome back');setTimeout(()=>location.href='dashboard.html',600)}
 function renderUser(){const u=JSON.parse(localStorage.getItem(userKey)||'null');document.querySelectorAll('[data-user-name]').forEach(el=>el.textContent=u?.name||'Guest User');document.querySelectorAll('[data-user-email]').forEach(el=>el.textContent=u?.email||'guest@example.com')}
 function renderOrders(){const root=document.querySelector('#orders-body');if(!root)return;const orders=JSON.parse(localStorage.getItem(orderKey)||'[]');const placed=new URLSearchParams(location.search).get('placed');if(placed)toast(`Order ${placed} placed successfully`);root.innerHTML=orders.length?orders.map(o=>`<tr><td><strong>${o.id}</strong></td><td>${o.date}</td><td>${o.items.map(i=>`${i.name} × ${i.qty}`).join(', ')}</td><td>${money(o.total)}</td><td><span class="status">${o.status}</span></td></tr>`).join(''):'<tr><td colspan="5"><div class="empty-state">No orders yet. <a href="shop.html" style="color:var(--green);font-weight:800">Start shopping</a></div></td></tr>'}
