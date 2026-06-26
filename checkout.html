@@ -1,8 +1,154 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Checkout | Gramam Direct</title><link rel="stylesheet" href="assets/css/styles.css"></head><body><div data-header></div><main><section class="page-hero"><div class="container"><h1>Secure checkout</h1><p>Complete your delivery and payment details.</p></div></section><section class="section"><div class="container cart-layout"><form class="form-card" onsubmit="placeOrder(event)"><h2>Delivery details</h2><div class="form-grid"><div class="field full"><label>Full name</label><input name="name" required></div><div class="field"><label>Email</label><input type="email" name="email" required></div><div class="field"><label>Phone</label><input   name="phone"   type="tel"   inputmode="numeric"   pattern="[6-9][0-9]{9}"   maxlength="10"   title="Enter a valid 10-digit Indian mobile number"   required ></div><div class="field full"><label>Address</label><textarea name="address" rows="3" required></textarea></div><div class="field"><label>City</label><input name="city" required></div><div class="field"><label>PIN code</label><input   name="pin"   inputmode="numeric"   pattern="[0-9]{6}"   maxlength="6"   title="Enter a valid 6-digit PIN code"   required ></div><div class="field full"><label>Payment method</label><select name="payment" id="payment-method" required>   <option value="Cash on Delivery">Cash on Delivery</option>   <option value="Razorpay" disabled>   Online Payment — Coming Soon </option> </select></div></div><button class="btn btn-primary" style="width:100%;margin-top:1rem">Place order</button><p style="color:var(--muted);font-size:.85rem">
-  Cash on Delivery is currently available. Online payment will be enabled soon.
-  By placing an order, you agree to our
-  <a href="terms.html">Terms & Conditions</a>,
-  <a href="privacy.html">Privacy Policy</a> and
-  <a href="refund.html">Cancellation & Refund Policy</a>.
-</p></form><aside class="cart-summary"><h3>Your order</h3><div id="checkout-summary"></div></aside></div></section></main><div data-footer></div><script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script src="assets/js/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
+
+  <title>Checkout | Gramam Direct</title>
+
+  <link
+    rel="stylesheet"
+    href="assets/css/styles.css"
+  >
+</head>
+
+<body>
+  <div data-header></div>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <h1>Secure checkout</h1>
+        <p>Complete your delivery and payment details.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container cart-layout">
+
+        <form
+          class="form-card"
+          onsubmit="placeOrder(event)"
+        >
+          <h2>Delivery details</h2>
+
+          <div class="form-grid">
+
+            <div class="field full">
+              <label>Full name</label>
+              <input
+                name="name"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label>Email</label>
+              <input
+                type="email"
+                name="email"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label>Phone</label>
+              <input
+                name="phone"
+                type="tel"
+                inputmode="numeric"
+                pattern="[6-9][0-9]{9}"
+                maxlength="10"
+                title="Enter a valid 10-digit Indian mobile number"
+                required
+              >
+            </div>
+
+            <div class="field full">
+              <label>Address</label>
+              <textarea
+                name="address"
+                rows="3"
+                required
+              ></textarea>
+            </div>
+
+            <div class="field">
+              <label>City</label>
+              <input
+                name="city"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label>PIN code</label>
+              <input
+                name="pin"
+                inputmode="numeric"
+                pattern="[0-9]{6}"
+                maxlength="6"
+                title="Enter a valid 6-digit PIN code"
+                required
+              >
+            </div>
+
+            <div class="field full">
+              <label>Payment method</label>
+
+              <select
+                name="payment"
+                id="payment-method"
+                required
+              >
+                <option value="Cash on Delivery">
+                  Cash on Delivery
+                </option>
+
+                <option
+                  value="Razorpay"
+                  disabled
+                >
+                  Online Payment — Coming Soon
+                </option>
+              </select>
+            </div>
+
+          </div>
+
+          <button
+            class="btn btn-primary"
+            style="width:100%;margin-top:1rem"
+          >
+            Place order
+          </button>
+
+          <p style="color:var(--muted);font-size:.85rem">
+            Cash on Delivery is currently available.
+            Online payment will be enabled soon.
+
+            By placing an order, you agree to our
+            <a href="terms.html">Terms & Conditions</a>,
+            <a href="privacy.html">Privacy Policy</a> and
+            <a href="refund.html">Cancellation & Refund Policy</a>.
+          </p>
+        </form>
+
+        <aside class="cart-summary">
+          <h3>Your order</h3>
+          <div id="checkout-summary"></div>
+        </aside>
+
+      </div>
+    </section>
+  </main>
+
+  <div data-footer></div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
