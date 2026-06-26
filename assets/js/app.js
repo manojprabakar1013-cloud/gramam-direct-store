@@ -75,7 +75,31 @@ function handleAuth(e,type){
 }
 function renderUser(){const u=JSON.parse(localStorage.getItem(userKey)||'null');document.querySelectorAll('[data-user-name]').forEach(el=>el.textContent=u?.name||'Guest User');document.querySelectorAll('[data-user-email]').forEach(el=>el.textContent=u?.email||'guest@example.com')}
 function renderOrders() {   const root =     document.querySelector("#orders-body");    if (!root) return;    let orders = JSON.parse(     localStorage.getItem(orderKey) || "[]"   );    const params =     new URLSearchParams(location.search);    const placed =     params.get("placed");    const pendingPayment =     JSON.parse(       localStorage.getItem(         "gramamDirectPendingPayment"       ) || "null"     );    if (     placed &&     pendingPayment &&     pendingPayment.id === placed   ) {     const alreadyAdded =       orders.some(function (order) {         return order.id === placed;       });      if (!alreadyAdded) {       pendingPayment.status = "Paid";       orders.unshift(pendingPayment);        localStorage.setItem(         orderKey,         JSON.stringify(orders)       );     }      localStorage.removeItem(cartKey);      localStorage.removeItem(       "gramamDirectPendingPayment"     );      updateCartCount();      toast(       "Payment successful! Order " +       placed +       " confirmed"     );   } else if (placed) {     toast(       "Order " +       placed +       " placed successfully"     );   }    root.innerHTML = orders.length     ? orders.map(function (order) {         return `           <tr>             <td>               <strong>${order.id}</strong>             </td>             <td>${order.date}</td>             <td>               ${order.items.map(function (item) {                 return (                   item.name +                   " × " +                   item.qty                 );               }).join(", ")}             </td>             <td>${money(order.total)}</td>             <td>               <span class="status">                 ${order.status}               </span>             </td>           </tr>         `;       }).join("")     : `       <tr>         <td colspan="5">           <div class="empty-state">             No orders yet.             <a               href="shop.html"               style="color:var(--green);font-weight:800"             >               Start shopping             </a>           </div>         </td>       </tr>     `; }
-function bindNewsletter(){document.querySelectorAll('.newsletter-form').forEach(f=>f.addEventListener('submit',e=>{e.preventDefault();toast('Thank you for subscribing!');f.reset()}))}
+function renderDashboard() {
+  const orders = JSON.parse(
+    localStorage.getItem(orderKey) || "[]"
+  );
+
+  const total = orders.reduce(function (sum, order) {
+    return sum + Number(order.total || 0);
+  }, 0);
+
+  const values = {
+    "dash-orders": orders.length,
+    "dash-spent": money(total),
+    "dash-pending": orders.filter(function (order) {
+      return order.status !== "Delivered";
+    }).length
+  };
+
+  Object.entries(values).forEach(function ([id, value]) {
+    const element = document.getElementById(id);
+
+    if (element) {
+      element.textContent = value;
+    }
+  });
+}function bindNewsletter(){document.querySelectorAll('.newsletter-form').forEach(f=>f.addEventListener('submit',e=>{e.preventDefault();toast('Thank you for subscribing!');f.reset()}))}
 function bindContact(){const f=document.querySelector('#contact-form');if(f)f.addEventListener('submit',e=>{e.preventDefault();toast('Message sent successfully');f.reset()})}
 function navInit(){const btn=document.querySelector('.mobile-toggle'),links=document.querySelector('.nav-links');btn&&btn.addEventListener('click',()=>links.classList.toggle('open'))}
 function commonHeader(active=''){return `<div class="announcement">Free delivery on orders above ₹999 • Direct from trusted village producers</div><header class="site-header"><div class="container nav"><a class="brand" href="index.html"><span class="brand-mark"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 37c10-2 16-8 19-19 7 9 12 14 20 18-7 9-18 14-31 14-4 0-7-5-8-13Z" fill="currentColor"/><path d="M31 17v32" stroke="#D8C2AE" stroke-width="4" stroke-linecap="round"/></svg></span><span>Gramam Direct</span></a><nav class="nav-links"><a class="${active==='home'?'active':''}" href="index.html">Home</a><a class="${active==='shop'?'active':''}" href="shop.html">Shop</a><a class="${active==='about'?'active':''}" href="about.html">Our Story</a><a class="${active==='contact'?'active':''}" href="contact.html">Contact</a></nav><div class="nav-actions"><a class="icon-btn account-link" href="login.html" aria-label="Account">👤</a><a class="icon-btn" href="cart.html" aria-label="Cart">🛒<span class="cart-count">0</span></a><button class="icon-btn mobile-toggle" aria-label="Menu">☰</button></div></div></header>`}
