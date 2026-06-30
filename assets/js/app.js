@@ -9,7 +9,7 @@ const products = [
   {id:8,name:'Musk Melon (Kirnipazham)',category:'Fruits',price:50,unit:'1 kg',badge:'Summer favourite',image:'assets/images/muskmelon.svg',description:'Incredibly sweet and fragrant village musk melons. Ideal for thick summer milkshakes and fruit bowls.',features:['Fresh village produce','Sweet and fragrant','Ideal for shakes and fruit bowls','Available now']}
 ];
 
-const money = n => `₹${Number(n).toLocaleString('en-IN')}`;
+const money = n =>   n === null || n === undefined     ? 'Price on request'     : `₹${Number(n).toLocaleString('en-IN')}`;
 const cartKey='gramamDirectCart';
 const orderKey='gramamDirectOrders';
 const userKey='gramamDirectUser';
@@ -19,27 +19,119 @@ const ordersApiUrl='https://script.google.com/macros/s/AKfycbyvS5ubSXImh711LFJew
 
 function whatsappUrl(message){return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`}
 function openWhatsApp(message){window.open(whatsappUrl(message),'_blank','noopener')}
-function productWhatsAppMessage(p,qty=1){const count=Math.max(1,Number(qty)||1);return `Hi Gramam Direct, I would like to order:\n\n${p.name} × ${count}\nQuantity: ${p.unit}\nPrice: ${money(p.price*count)}\n\nPlease confirm availability and delivery details.`}
+function productWhatsAppMessage(p, qty = 1) {
+  const count = Math.max(1, Number(qty) || 1);
+
+  const priceText =
+    p.price === null
+      ? 'Price: Please confirm current price'
+      : `Price: ${money(p.price * count)}`;
+
+  return `Hi Gramam Direct, I would like to order:
+
+${p.name} × ${count}
+Quantity: ${p.unit}
+${priceText}
+Stock: ${p.stock}
+
+Please confirm availability and delivery details.`;
+}
 function openProductWhatsApp(id){const p=products.find(x=>x.id===id);if(!p)return;const qty=document.querySelector('#detail-qty')?.value||1;openWhatsApp(productWhatsAppMessage(p,qty))}
 function buildCartWhatsAppMessage(){const rows=cartRows();if(!rows.length)return 'Hi Gramam Direct, I would like to know more about your fresh village products.';const t=cartTotals();const items=rows.map((r,i)=>`${i+1}. ${r.product.name} × ${r.qty} (${r.product.unit}) - ${money(r.product.price*r.qty)}`).join('\n');return `Hi Gramam Direct, I would like to place this order:\n\n${items}\n\nSubtotal: ${money(t.subtotal)}\nShipping: ${t.shipping?money(t.shipping):'Free'}\nTotal: ${money(t.total)}\n\nPlease confirm availability and delivery details.`}
 const getCart=()=>JSON.parse(localStorage.getItem(cartKey)||'[]');
 const setCart=(cart)=>{localStorage.setItem(cartKey,JSON.stringify(cart));updateCartCount();};
 
-function addToCart(id,qty=1){
-  const cart=getCart();
-  const row=cart.find(i=>i.id===id);
-  if(row) row.qty+=Number(qty); else cart.push({id,qty:Number(qty)});
-  setCart(cart);toast('Added to cart');
+function addToCart(id, qty = 1) {
+  const product = products.find(p => p.id === id);
+
+  if (!product) return;
+
+  if (product.stock !== 'In Stock') {
+    toast('This product is currently out of stock');
+    return;
+  }
+
+  if (product.price === null) {
+    openProductWhatsApp(id);
+    return;
+  }
+
+  const cart = getCart();
+  const row = cart.find(item => item.id === id);
+
+  if (row) {
+    row.qty += Number(qty);
+  } else {
+    cart.push({
+      id: id,
+      qty: Number(qty)
+    });
+  }
+
+  setCart(cart);
+  toast('Added to cart');
 }
 function removeFromCart(id){setCart(getCart().filter(i=>i.id!==id));renderCart();}
 function updateQty(id,qty){const cart=getCart();const row=cart.find(i=>i.id===id);if(!row)return;row.qty=Math.max(1,Number(qty));setCart(cart);renderCart();}
 function updateCartCount(){const el=document.querySelector('.cart-count');if(el)el.textContent=getCart().reduce((s,i)=>s+i.qty,0);}
 function toast(msg){let t=document.querySelector('.toast');if(!t){t=document.createElement('div');t.className='toast';document.body.appendChild(t)}t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
-function productCard(p){return `<article class="product-card">
-  <a class="product-media" href="product.html?id=${p.id}"><img src="${p.image}" alt="${p.name}"><span class="product-badge">${p.badge}</span></a>
-  <div class="product-info"><div class="product-category">${p.category}</div><a href="product.html?id=${p.id}" class="product-title">${p.name}</a><div class="product-bottom"><div><div class="price">${money(p.price)}</div><small>${p.unit}</small></div><button class="add-btn" onclick="addToCart(${p.id})" aria-label="Add ${p.name} to cart">+</button></div></div>
-</article>`}
-function renderFeatured(){const el=document.querySelector('#featured-products');if(el)el.innerHTML=products.slice(0,4).map(productCard).join('')}
+function productCard(p) {
+  const actionButton =
+    p.price === null
+      ? `<button
+           class="add-btn"
+           onclick="openProductWhatsApp(${p.id})"
+           aria-label="Ask price for ${p.name}"
+         >💬</button>`
+      : `<button
+           class="add-btn"
+           onclick="addToCart(${p.id})"
+           aria-label="Add ${p.name} to cart"
+         >+</button>`;
+
+  return `
+    <article class="product-card">
+      <a class="product-media" href="product.html?id=${p.id}">
+        <img src="${p.image}" alt="${p.name}">
+        <span class="product-badge">${p.badge}</span>
+      </a>
+
+      <div class="product-info">
+        <div class="product-category">${p.category}</div>
+
+        <a href="product.html?id=${p.id}" class="product-title">
+          ${p.name}
+        </a>
+
+        <div class="product-bottom">
+          <div>
+            <div class="price">${money(p.price)}</div>
+            <small>${p.unit}</small>
+          </div>
+
+          ${actionButton}
+        </div>
+      </div>
+    </article>
+  `;
+}
+function renderFeatured() {
+  const element =
+    document.querySelector('#featured-products');
+
+  if (!element) return;
+
+  const featuredIds = [10, 1, 9, 2];
+
+  element.innerHTML =
+    featuredIds
+      .map(id =>
+        products.find(product => product.id === id)
+      )
+      .filter(Boolean)
+      .map(productCard)
+      .join('');
+}
 function renderShop(){
   const grid=document.querySelector('#shop-grid');if(!grid)return;
   const search=document.querySelector('#search-products');const cat=document.querySelector('#category-filter');const sort=document.querySelector('#sort-products');
@@ -59,9 +151,90 @@ function renderCart(){
   list.innerHTML=rows.length?rows.map(r=>`<div class="cart-item"><img src="${r.product.image}" alt="${r.product.name}"><div><a href="product.html?id=${r.product.id}"><strong>${r.product.name}</strong></a><div style="color:var(--muted)">${r.product.unit}</div><div class="quantity" style="margin-top:.65rem;width:max-content"><button onclick="updateQty(${r.id},${r.qty-1})">−</button><input value="${r.qty}" onchange="updateQty(${r.id},this.value)"><button onclick="updateQty(${r.id},${r.qty+1})">+</button></div></div><div style="text-align:right"><div class="price">${money(r.product.price*r.qty)}</div><button onclick="removeFromCart(${r.id})" style="border:0;background:none;color:var(--terracotta);cursor:pointer;margin-top:.8rem">Remove</button></div></div>`).join(''):'<div class="empty-state"><h3>Your cart is empty</h3><p>Add village-made favourites from our shop.</p><a class="btn btn-primary" href="shop.html">Start shopping</a></div>';
   const t=cartTotals();['subtotal','shipping','total'].forEach(k=>{const el=document.querySelector(`#cart-${k}`);if(el)el.textContent=money(t[k])});const btn=document.querySelector('#checkout-btn');if(btn)btn.style.pointerEvents=rows.length?'auto':'none';
   const summary=document.querySelector('.cart-summary');let wa=document.querySelector('#whatsapp-cart-btn');if(summary&&!wa){summary.insertAdjacentHTML('beforeend','<button id="whatsapp-cart-btn" class="btn" style="width:100%;margin-top:.75rem;background:#25D366;color:#fff">💬 Order cart on WhatsApp</button>');wa=document.querySelector('#whatsapp-cart-btn');wa?.addEventListener('click',()=>openWhatsApp(buildCartWhatsAppMessage()))}if(wa){wa.disabled=!rows.length;wa.style.opacity=rows.length?'1':'.55';wa.style.cursor=rows.length?'pointer':'not-allowed'}
+}function normalizePin(pin) {
+  return String(pin || '')
+    .replace(/\D/g, '')
+    .slice(0, 6);
+}
+
+function isTamilNaduPin(pin) {
+  const cleanPin = normalizePin(pin);
+
+  if (!/^[0-9]{6}$/.test(cleanPin)) {
+    return false;
+  }
+
+  const pinNumber = Number(cleanPin);
+
+  return (
+    pinNumber >= 600000 &&
+    pinNumber <= 643999
+  );
+}
+
+function bindPinAvailability() {
+  const pinInput =
+    document.querySelector('[name="pin"]');
+
+  const message =
+    document.querySelector('#pin-availability');
+
+  if (!pinInput || !message) return;
+
+  function checkPin() {
+    const pin =
+      normalizePin(pinInput.value);
+
+    if (pin.length < 6) {
+      message.textContent =
+        'Delivery currently available across Tamil Nadu only.';
+
+      message.style.color =
+        'var(--muted)';
+
+      return;
+    }
+
+    if (isTamilNaduPin(pin)) {
+      message.textContent =
+        '✓ Delivery available for this Tamil Nadu PIN code.';
+
+      message.style.color =
+        '#15733d';
+    } else {
+      message.textContent =
+        'Delivery is currently unavailable outside Tamil Nadu.';
+
+      message.style.color =
+        '#b42318';
+    }
+  }
+
+  pinInput.addEventListener(
+    'input',
+    checkPin
+  );
+
+  pinInput.addEventListener(
+    'blur',
+    checkPin
+  );
 }
 function renderCheckout(){const sum=document.querySelector('#checkout-summary');if(!sum)return;const rows=cartRows(),t=cartTotals();sum.innerHTML=rows.map(r=>`<div class="summary-line"><span>${r.product.name} × ${r.qty}</span><strong>${money(r.product.price*r.qty)}</strong></div>`).join('')+`<div class="summary-line"><span>Shipping</span><strong>${t.shipping?money(t.shipping):'Free'}</strong></div><div class="summary-line total"><span>Total</span><span>${money(t.total)}</span></div>`}
-async function placeOrder(e) {   e.preventDefault();    const formEl = e.target;   const rows = cartRows();    if (!rows.length) {     toast("Your cart is empty");     return;   }    const form = new FormData(formEl);   const totals = cartTotals();    const orderId =     "GD" + Date.now().toString().slice(-8);    const paymentMethod =     String(       form.get("payment") ||       "Cash on Delivery"     );    const submitBtn = formEl.querySelector(     'button[type="submit"], button:not([type])'   );    const originalText =     submitBtn?.textContent || "Place order";    const payload = {     orderId: orderId,     customerName: form.get("name") || "",     phone: form.get("phone") || "",     email: form.get("email") || "",     address: form.get("address") || "",     city: form.get("city") || "",     pin: form.get("pin") || "",      products: rows.map(function (row) {       return {         name: row.product.name,         qty: row.qty,         unit: row.product.unit,         price: row.product.price,         lineTotal:           row.product.price * row.qty       };     }),      subtotal: totals.subtotal,     shipping: totals.shipping,     total: totals.total,     paymentMethod: paymentMethod,     orderStatus: "New"   };     if (paymentMethod === "Razorpay") {     if (submitBtn) {       submitBtn.disabled = true;       submitBtn.textContent =         "Opening secure payment...";     }      try {       localStorage.setItem(         "gramamDirectPendingPayment",         JSON.stringify({           id: orderId,           date: new Date().toLocaleDateString(             "en-IN"           ),           status: "Paid",           total: totals.total,           items: rows.map(function (row) {             return {               name: row.product.name,               qty: row.qty             };           }),           customer:             payload.customerName         })       );        const paymentForm =         document.createElement("form");        paymentForm.method = "POST";       paymentForm.action = ordersApiUrl;       paymentForm.style.display = "none";        const paymentFields = {         action:           "startRazorpayPaymentPage",          orderId:           payload.orderId,          customerName:           payload.customerName,          phone:           payload.phone,          email:           payload.email,          address:           payload.address,          city:           payload.city,          pin:           payload.pin,          products:           JSON.stringify(payload.products)       };        Object.entries(paymentFields)         .forEach(function ([name, value]) {           const input =             document.createElement("input");            input.type = "hidden";           input.name = name;           input.value = value;            paymentForm.appendChild(input);         });        document.body.appendChild(         paymentForm       );        paymentForm.submit();      } catch (error) {       console.error(         "Unable to open Razorpay",         error       );        localStorage.removeItem(         "gramamDirectPendingPayment"       );        toast(         "Unable to open online payment."       );        if (submitBtn) {         submitBtn.disabled = false;         submitBtn.textContent =           originalText;       }     }      return;   }     if (submitBtn) {     submitBtn.disabled = true;     submitBtn.textContent =       "Saving order...";   }    try {     await fetch(       ordersApiUrl,       {         method: "POST",         mode: "no-cors",         headers: {           "Content-Type":             "text/plain;charset=utf-8"         },         body: JSON.stringify(payload)       }     );      const order = {       id: orderId,       date:         new Date().toLocaleDateString(           "en-IN"         ),       status: "Confirmed",       total: totals.total,       items: rows.map(function (row) {         return {           name: row.product.name,           qty: row.qty         };       }),       customer:         payload.customerName     };      const orders = JSON.parse(       localStorage.getItem(orderKey) ||       "[]"     );      orders.unshift(order);      localStorage.setItem(       orderKey,       JSON.stringify(orders)     );      localStorage.removeItem(cartKey);      location.href =       "orders.html?placed=" +       encodeURIComponent(orderId);    } catch (error) {     console.error(       "Order save failed",       error     );      toast(       "Could not save order. Please try WhatsApp order."     );      if (submitBtn) {       submitBtn.disabled = false;       submitBtn.textContent =         originalText;     }   } }
+async function placeOrder(e) {   e.preventDefault();    const formEl = e.target;   const rows = cartRows();    if (!rows.length) {     toast("Your cart is empty");     return;   }    const form = new FormData(formEl);const deliveryPin =
+  String(form.get('pin') || '').trim();
+
+if (!isTamilNaduPin(deliveryPin)) {
+  toast(
+    'Delivery is currently available only within Tamil Nadu.'
+  );
+
+  document
+    .querySelector('[name="pin"]')
+    ?.focus();
+
+  return;
+}   const totals = cartTotals();    const orderId =     "GD" + Date.now().toString().slice(-8);    const paymentMethod =     String(       form.get("payment") ||       "Cash on Delivery"     );    const submitBtn = formEl.querySelector(     'button[type="submit"], button:not([type])'   );    const originalText =     submitBtn?.textContent || "Place order";    const payload = {     orderId: orderId,     customerName: form.get("name") || "",     phone: form.get("phone") || "",     email: form.get("email") || "",     address: form.get("address") || "",     city: form.get("city") || "",     pin: form.get("pin") || "",      products: rows.map(function (row) {       return {         name: row.product.name,         qty: row.qty,         unit: row.product.unit,         price: row.product.price,         lineTotal:           row.product.price * row.qty       };     }),      subtotal: totals.subtotal,     shipping: totals.shipping,     total: totals.total,     paymentMethod: paymentMethod,     orderStatus: "New"   };     if (paymentMethod === "Razorpay") {     if (submitBtn) {       submitBtn.disabled = true;       submitBtn.textContent =         "Opening secure payment...";     }      try {       localStorage.setItem(         "gramamDirectPendingPayment",         JSON.stringify({           id: orderId,           date: new Date().toLocaleDateString(             "en-IN"           ),           status: "Paid",           total: totals.total,           items: rows.map(function (row) {             return {               name: row.product.name,               qty: row.qty             };           }),           customer:             payload.customerName         })       );        const paymentForm =         document.createElement("form");        paymentForm.method = "POST";       paymentForm.action = ordersApiUrl;       paymentForm.style.display = "none";        const paymentFields = {         action:           "startRazorpayPaymentPage",          orderId:           payload.orderId,          customerName:           payload.customerName,          phone:           payload.phone,          email:           payload.email,          address:           payload.address,          city:           payload.city,          pin:           payload.pin,          products:           JSON.stringify(payload.products)       };        Object.entries(paymentFields)         .forEach(function ([name, value]) {           const input =             document.createElement("input");            input.type = "hidden";           input.name = name;           input.value = value;            paymentForm.appendChild(input);         });        document.body.appendChild(         paymentForm       );        paymentForm.submit();      } catch (error) {       console.error(         "Unable to open Razorpay",         error       );        localStorage.removeItem(         "gramamDirectPendingPayment"       );        toast(         "Unable to open online payment."       );        if (submitBtn) {         submitBtn.disabled = false;         submitBtn.textContent =           originalText;       }     }      return;   }     if (submitBtn) {     submitBtn.disabled = true;     submitBtn.textContent =       "Saving order...";   }    try {     await fetch(       ordersApiUrl,       {         method: "POST",         mode: "no-cors",         headers: {           "Content-Type":             "text/plain;charset=utf-8"         },         body: JSON.stringify(payload)       }     );      const order = {       id: orderId,       date:         new Date().toLocaleDateString(           "en-IN"         ),       status: "Confirmed",       total: totals.total,       items: rows.map(function (row) {         return {           name: row.product.name,           qty: row.qty         };       }),       customer:         payload.customerName     };      const orders = JSON.parse(       localStorage.getItem(orderKey) ||       "[]"     );      orders.unshift(order);      localStorage.setItem(       orderKey,       JSON.stringify(orders)     );      localStorage.removeItem(cartKey);      location.href =       "orders.html?placed=" +       encodeURIComponent(orderId);    } catch (error) {     console.error(       "Order save failed",       error     );      toast(       "Could not save order. Please try WhatsApp order."     );      if (submitBtn) {       submitBtn.disabled = false;       submitBtn.textContent =         originalText;     }   } }
 function handleAuth(e,type){
   e.preventDefault();
   const f=new FormData(e.target);
@@ -114,4 +287,4 @@ function commonFooter(){return `<footer class="site-footer"><div class="containe
 function injectWhatsAppButton(){if(document.querySelector('#whatsapp-float'))return;const a=document.createElement('a');a.id='whatsapp-float';a.href=whatsappUrl(buildCartWhatsAppMessage());a.target='_blank';a.rel='noopener';a.setAttribute('aria-label','Order on WhatsApp');a.style.cssText='position:fixed;left:18px;bottom:18px;z-index:99;display:flex;align-items:center;gap:.5rem;background:#25D366;color:#fff;padding:.8rem 1rem;border-radius:999px;font-weight:850;box-shadow:0 12px 30px rgba(20,90,50,.28);text-decoration:none';a.innerHTML='<span style="font-size:1.25rem">💬</span><span>WhatsApp Order</span>';a.addEventListener('click',()=>{a.href=whatsappUrl(buildCartWhatsAppMessage())});document.body.appendChild(a)}
 function injectLayout(){const header=document.querySelector('[data-header]');const footer=document.querySelector('[data-footer]');if(header)header.innerHTML=commonHeader(header.dataset.header);if(footer)footer.innerHTML=commonFooter();injectWhatsAppButton()}
 
-document.addEventListener('DOMContentLoaded',()=>{injectLayout();navInit();updateCartCount();renderFeatured();renderShop();renderProduct();renderCart();renderCheckout();renderUser();renderOrders();renderDashboard();bindNewsletter();bindContact()});
+document.addEventListener('DOMContentLoaded',()=>{injectLayout();navInit();updateCartCount();renderFeatured();renderShop();renderProduct();renderCart();renderCheckout();renderUser();renderOrders();renderDashboard();bindNewsletter();bindPinAvailability();bindContact()});
