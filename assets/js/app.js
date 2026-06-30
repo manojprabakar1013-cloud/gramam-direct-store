@@ -1,12 +1,174 @@
-const products = [  {id:1,name:'Cold-Pressed Groundnut Oil',category:'Oils',price:320,unit:'1 Litre',badge:'Available',image:'assets/images/groundnut-oil.svg',description:'Traditional wooden cold-pressed groundnut oil.',features:['Wooden cold-pressed','Traditional village method','1 litre pack','Available now']},
-  {id:2,name:'Jackfruit',category:'Fruits',price:50,unit:'1 kg',badge:'Farm fresh',image:'assets/images/jackfruit.svg',description:'Fresh, honey-sweet jackfruit sourced directly from village orchards. Naturally aromatic with a soft, sweet texture.',features:['Naturally grown','Village orchard sourced','Sweet and aromatic','Available now']},
-  {id:3,name:'Watermelon',category:'Fruits',price:30,unit:'1 kg',badge:'Summer fresh',image:'assets/images/watermelon.svg',description:'Crisp, sweet, and incredibly hydrating. Sourced fresh from village fields, our naturally grown watermelons are perfect to beat the heat and stay refreshed.',features:['Fresh from village fields','Naturally grown','Sweet and juicy','Available now']},
-  {id:4,name:'Amla (Nellikai)',category:'Fruits',price:80,unit:'1 kg',badge:'Tangy fresh',image:'assets/images/amla.svg',description:'Traditional village-grown Indian gooseberries. These sour-tangy amlas are suitable for juices, pickles and traditional recipes.',features:['Village grown','Rich in Vitamin C','Perfect for juice and pickles','Available now']},
-  {id:5,name:'Banana (Vazha Pazham)',category:'Fruits',price:60,unit:'1 Dozen (12 Pieces)',badge:'Naturally ripened',image:'assets/images/banana.svg',description:'Naturally ripened, premium local village bananas. Sweet, soft, and ideal for snacks, desserts and everyday use.',features:['Naturally ripened','Local village variety','Sweet and soft','Available now']},
-  {id:6,name:'Drumstick (Murungakai)',category:'Vegetables',price:70,unit:'1 kg',badge:'Fresh harvest',image:'assets/images/drumstick.svg',description:'Fresh, tender, and highly aromatic village drumsticks. Perfect for adding authentic flavour to traditional sambar and aviyal.',features:['Fresh and tender','Rich in iron and vitamins','Ideal for sambar and aviyal','Available now']},
-  {id:7,name:'Pomelo (Bablimass)',category:'Fruits',price:90,unit:'1 Piece (Approx. 1 kg)',badge:'Citrus fresh',image:'assets/images/pomelo.svg',description:'Freshly harvested citrus delight directly from rural orchards. With its unique mild sweet-tangy flavour, this juicy fruit is ideal for fresh servings and fruit salads.',features:['Rural orchard sourced','Sweet-tangy flavour','Rich in antioxidants','Available now']},
-  {id:8,name:'Musk Melon (Kirnipazham)',category:'Fruits',price:50,unit:'1 kg',badge:'Summer favourite',image:'assets/images/muskmelon.svg',description:'Incredibly sweet and fragrant village musk melons. Ideal for thick summer milkshakes and fruit bowls.',features:['Fresh village produce','Sweet and fragrant','Ideal for shakes and fruit bowls','Available now']}
-
+const products = [
+  {
+    id: 1,
+    name: 'Cold-Pressed Groundnut Oil',
+    category: 'Oils',
+    price: 320,
+    unit: '1 Litre',
+    badge: 'In Stock',
+    stock: 'In Stock',
+    image: 'assets/images/groundnut-oil.svg',
+    description: 'Traditional wooden cold-pressed groundnut oil.',
+    features: [
+      'Wooden cold-pressed',
+      'Traditional village method',
+      '1 litre pack',
+      'In stock'
+    ]
+  },
+  {
+    id: 2,
+    name: 'Jackfruit',
+    category: 'Fruits',
+    price: 50,
+    unit: '1 kg',
+    badge: 'Seasonal • In Stock',
+    stock: 'In Stock',
+    image: 'assets/images/jackfruit.svg',
+    description: 'Fresh seasonal jackfruit sourced from village orchards.',
+    features: [
+      'Seasonal product',
+      'Village orchard sourced',
+      'Sweet and aromatic',
+      'In stock'
+    ]
+  },
+  {
+    id: 3,
+    name: 'Watermelon',
+    category: 'Fruits',
+    price: 30,
+    unit: '1 kg',
+    badge: 'Seasonal • In Stock',
+    stock: 'In Stock',
+    image: 'assets/images/watermelon.svg',
+    description: 'Fresh seasonal watermelon sourced from village fields.',
+    features: [
+      'Seasonal product',
+      'Fresh village produce',
+      'Sweet and juicy',
+      'In stock'
+    ]
+  },
+  {
+    id: 4,
+    name: 'Amla (Nellikai)',
+    category: 'Fruits',
+    price: 80,
+    unit: '1 kg',
+    badge: 'In Stock',
+    stock: 'In Stock',
+    image: 'assets/images/amla.svg',
+    description: 'Village-grown sour and tangy amla suitable for traditional recipes.',
+    features: [
+      'Village grown',
+      'Suitable for juice and pickles',
+      'Fresh produce',
+      'In stock'
+    ]
+  },
+  {
+    id: 5,
+    name: 'Banana (Vazha Pazham)',
+    category: 'Fruits',
+    price: 60,
+    unit: '1 Dozen (12 Pieces)',
+    badge: 'In Stock',
+    stock: 'In Stock',
+    image: 'assets/images/banana.svg',
+    description: 'Sweet and soft local village bananas.',
+    features: [
+      'Local village variety',
+      'Sweet and soft',
+      'One dozen pack',
+      'In stock'
+    ]
+  },
+  {
+    id: 6,
+    name: 'Drumstick (Murungakai)',
+    category: 'Vegetables',
+    price: 70,
+    unit: '1 kg',
+    badge: 'In Stock',
+    stock: 'In Stock',
+    image: 'assets/images/drumstick.svg',
+    description: 'Fresh village drumsticks suitable for traditional recipes.',
+    features: [
+      'Fresh and tender',
+      'Village sourced',
+      'Suitable for traditional cooking',
+      'In stock'
+    ]
+  },
+  {
+    id: 7,
+    name: 'Pomelo (Bablimass)',
+    category: 'Fruits',
+    price: 90,
+    unit: '1 Piece (Approx. 1 kg)',
+    badge: 'In Stock',
+    stock: 'In Stock',
+    image: 'assets/images/pomelo.svg',
+    description: 'Fresh mild sweet-tangy pomelo sourced from rural orchards.',
+    features: [
+      'Rural orchard sourced',
+      'Sweet-tangy flavour',
+      'Approximately 1 kg',
+      'In stock'
+    ]
+  },
+  {
+    id: 8,
+    name: 'Musk Melon (Kirnipazham)',
+    category: 'Fruits',
+    price: 50,
+    unit: '1 kg',
+    badge: 'Seasonal • In Stock',
+    stock: 'In Stock',
+    image: 'assets/images/muskmelon.svg',
+    description: 'Fresh seasonal musk melon suitable for fruit bowls and drinks.',
+    features: [
+      'Seasonal product',
+      'Sweet and fragrant',
+      'Fresh village produce',
+      'In stock'
+    ]
+  },
+  {
+    id: 9,
+    name: 'Lemons',
+    category: 'Fruits',
+    price: null,
+    unit: 'Price on request',
+    badge: 'New • In Stock',
+    stock: 'In Stock',
+    image: 'assets/images/lemon.svg',
+    description: 'Fresh lemons available for order. Contact us to confirm the current price.',
+    features: [
+      'New product',
+      'Fresh produce',
+      'Price confirmed on WhatsApp',
+      'In stock'
+    ]
+  },
+  {
+    id: 10,
+    name: 'Monthly Household Products',
+    category: 'Household',
+    price: 4999,
+    unit: '1 Monthly Bundle',
+    badge: 'New Bundle • In Stock',
+    stock: 'In Stock',
+    image: 'assets/images/household-bundle.svg',
+    description: 'A monthly household essentials bundle. Contents are confirmed before dispatch.',
+    features: [
+      'Monthly household essentials',
+      '₹4,999 per bundle',
+      'Contents confirmed before dispatch',
+      'In stock'
+    ]
+  }
 ];
 
 const money = n =>   n === null || n === undefined     ? 'Price on request'     : `₹${Number(n).toLocaleString('en-IN')}`;
